@@ -13,18 +13,18 @@ const ICON_COMPONENTS = {
   Palette, Edit, Trash2, Save, Play, Pause, RotateCcw, MessageSquareText, Send, User, Bot, Info, AlignLeft, Lightbulb, Sun, Image,
   Sparkles, PenLine, Gauge, MapPin, ListChecks, CalendarDays, Book, Globe, Film, Headphones, Terminal, MessageCircle
 };
-
 const COLORS = {
-  primary: '#274f8b', // Dark Blue
-  secondary: '#e9b0c8', // Pink
-  accent: '#d76a4c', // Orange
-  success: '#25533f', // Dark Green
-  danger: '#6e1e3a', // Dark Red
-  info: '#a4bde0', // Light Blue
-  warning: '#fadd8b', // Yellow
-  tertiary: '#74b72e', // Light Gray for AI Chatbot
-  quad: 'rgba(255, 175, 89, 1)' // Light Gray for Diary
+  primary: '#274f8b',
+  secondary: '#e9b0c8',
+  accent: '#d76a4c',
+  success: '#25533f',
+  danger: '#6e1e3a',
+  info: '#a4bde0',
+  warning: '#fadd8b',
+  tertiary: '#74b72e',
+  quad: 'rgba(255, 175, 89, 1)'
 };
+
 
 const WIDGET_MIN_WIDTH = 250;
 const WIDGET_MIN_HEIGHT = 200;
@@ -51,14 +51,30 @@ const useLocalStorage = (key, initialValue) => {
 
   return [value, setValue];
 };
-
+/**
+ * @typedef {Object} AlertDialogProps
+ * @property {string} [message]
+ * @property {() => void} onConfirm
+ * @property {() => void} [onCancel]
+ * @property {boolean} [showCancel]
+ * @property {React.ReactNode} [children]
+ * @property {'info' | 'warning' | 'error' | 'success'} [type]
+ */
 // --- Reusable Alert/Confirm Dialog Component ---
-const AlertDialog = ({ message, onConfirm, onCancel, showCancel = false, children, type = 'info' }) => {
+const AlertDialog = ({
+  message,
+  onConfirm,
+  onCancel,
+  showCancel = false,
+  children,
+  type = 'info',
+}) => {
   if (!message && !children) return null;
 
   let IconComponent;
   let borderColor;
   let iconColor;
+
 
   switch (type) {
     case 'success':
@@ -111,10 +127,49 @@ const AlertDialog = ({ message, onConfirm, onCancel, showCancel = false, childre
     </div>
   );
 };
+/**
+ * @typedef {Object} ScrapbookWidgetProps
+ * @property {string} id - or number, whatever fits your use case
+ * @property {string} type
+ * @property {number} x
+ * @property {number} y
+ * @property {number} width
+ * @property {number} height
+ * @property {string} color
+ * @property {string} name
+ * @property {React.ReactNode} icon - or string if it's an icon name
+ * @property {(id: string) => void} removeWidget
+ * @property {React.ReactNode} [children]
+ * @property {(newWidth: number, newHeight: number) => void} [onResize]
+ * @property {(newX: number, newY: number) => void} [onDrag]
+ * @property {() => void} [onMinimize]
+ * @property {() => void} [onMaximize]
+ */
 
-// --- Scrapbook Widget Wrapper ---
-const ScrapbookWidget = ({ id, type, x, y, width, height, color, name, icon, removeWidget, children, onResize, onDrag, onMinimize, onMaximize }) => {
-  const widgetRef = useRef(null);
+/**
+ * @param {ScrapbookWidgetProps} props
+ */
+
+
+
+const ScrapbookWidget = ({
+  id,
+  type,
+  x,
+  y,
+  width,
+  height,
+  color,
+  name,
+  icon,
+  removeWidget,
+  children,
+  onResize,
+  onDrag,
+  onMinimize,
+  onMaximize,
+}) => {
+const widgetRef = useRef(null);
   const resizeStart = useRef({ x: 0, y: 0, width: 0, height: 0 });
   const [isResizing, setIsResizing] = useState(null);
   const [isActuallyDragging, setIsActuallyDragging] = useState(false);
@@ -122,20 +177,33 @@ const ScrapbookWidget = ({ id, type, x, y, width, height, color, name, icon, rem
   const [isMinimized, setIsMinimized] = useState(false);
   const [isMaximized, setIsMaximized] = useState(false);
 
-  const handleDragMouseDown = useCallback((e) => {
-    if (e.target.closest('.widget-control-button') || e.target.closest('.resize-handle') || e.target.closest('button') || e.target.closest('input') || e.target.closest('textarea') || e.target.tagName === 'SELECT') {
-      return;
-    }
-    const rect = widgetRef.current.getBoundingClientRect();
-    dragOffset.current = {
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top
-    };
-    setIsActuallyDragging(false);
-    e.stopPropagation();
-  }, []);
+const handleDragMouseDown = useCallback((e) => {
+  if (
+    e.target instanceof HTMLElement &&
+    (
+      e.target.closest('.widget-control-button') ||
+      e.target.closest('.resize-handle') ||
+      e.target.closest('button') ||
+      e.target.closest('input') ||
+      e.target.closest('textarea') ||
+      e.target.tagName === 'SELECT'
+    )
+  ) {
+    return;
+  }
+const rect = widgetRef.current?.getBoundingClientRect();
+if (!rect) return; // if current is null, exit early
 
-  const handleResizeMouseDown = useCallback((e, direction) => {
+dragOffset.current = {
+  x: e.clientX - rect.left,
+  y: e.clientY - rect.top,
+};
+  setIsActuallyDragging(false);
+  e.stopPropagation();
+}, []);
+
+const handleResizeMouseDown = useCallback(
+  (e, direction) => {
     e.stopPropagation();
     setIsResizing(direction);
     const rect = widgetRef.current.getBoundingClientRect();
@@ -143,10 +211,11 @@ const ScrapbookWidget = ({ id, type, x, y, width, height, color, name, icon, rem
       x: e.clientX,
       y: e.clientY,
       width: rect.width,
-      height: rect.height
+      height: rect.height,
     };
-  }, []);
-
+  },
+  []
+);
   const handleMouseMove = useCallback((e) => {
     if (isResizing) {
       let newWidth = resizeStart.current.width;
@@ -1684,9 +1753,9 @@ const App = () => {
     setWidgets((prev) => [...prev, newWidget]);
   };
 
-  const removeWidget = (id) => {
-    setWidgets((prev) => prev.filter((widget) => widget.id !== id));
-  };
+const removeWidget = (id) => {
+  setWidgets((prev) => prev.filter((widget) => widget.id !== id));
+};
 
   const handleWidgetResize = (id, newWidth, newHeight) => {
     setWidgets((prev) =>
@@ -1771,19 +1840,20 @@ const App = () => {
           </button>
         </div>
         <div className="space-y-3">
-          {widgetOptions.map((option) => {
-            const IconComponent = ICON_COMPONENTS[option.icon];
-            return (
-              <button
-                key={option.type}
-                onClick={() => addWidget(option.type, option.name, option.icon, option.color)}
-                className={`w-full flex items-center gap-3 p-3 rounded-lg border border-[${COLORS.info}] hover:bg-gray-50 transition-colors shadow-sm`}
-              >
-                {IconComponent && <IconComponent size={20} style={{ color: option.color }} />}
-                <span className="font-medium text-gray-800 text-sm">{option.name}</span>
-              </button>
-            );
-          })}
+{widgetOptions.map((option) => {
+  const IconComponent = ICON_COMPONENTS[option.icon];
+  return (
+    <button
+      key={option.type}
+      onClick={() => addWidget(option.type, option.name, option.icon, option.color)}
+      className="w-full flex items-center gap-3 p-3 rounded-lg border hover:bg-gray-50 transition-colors shadow-sm"
+      style={{ borderColor: COLORS.info }} // border color fix
+    >
+      {IconComponent && <IconComponent size={20} style={{ color: option.color }} />}
+      <span className="font-medium text-gray-800 text-sm">{option.name}</span>
+    </button>
+  );
+})}
         </div>
       </div>
 
