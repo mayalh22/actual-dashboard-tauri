@@ -1010,7 +1010,7 @@ const DiaryWidget = () => {
 const WeatherWidget = () => {
   // IMPORTANT: Use environment variables for API keys in production
   // For this environment, we'll use a placeholder. In a real app, you'd use process.env.REACT_APP_OPENWEATHER_API_KEY
-  const API_KEY = '4f355317b527dca4ad4f3f4cd7305706'; // <<<--- IMPORTANT: PASTE YOUR API KEY HERE
+const API_KEY = import.meta.env.VITE_CUSTOM_API_KEY;
 
   const [location, setLocation] = useLocalStorage('weatherLocation', 'London, UK');
   const [inputLocation, setInputLocation] = useState(location);
@@ -1495,7 +1495,7 @@ const AIChatbotWidget = () => {
         }
       };
 
-      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${"AIzaSyCpBe9IGvNypYPCgKH17qmjResUT90Xwso"}`;
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${"VITE_GEMINI_API_KEY"}`;
 
       console.log('Sending payload:', JSON.stringify(payload, null, 2));
 
